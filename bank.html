@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Pemasukan Uang</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h2 {
+            text-align: center;
+            color: #4CAF50;
+        }
+        p {
+            text-align: center;
+            font-size: 1.2em;
+        }
+        form {
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 50%;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input[type="date"],
+        input[type="number"],
+        input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 50%;
+            border-collapse: collapse;
+            margin: 20px auto;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tbody tr:hover {
+            background-color: #e0e0e0;
+        }
+        .export {
+            display: block;
+            width: 50%;
+            margin: 10px auto;
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .export:hover {
+            background-color: #0056b3;
+        }
+        @media (max-width: 768px) {
+            form, table {
+                width: 100%;
+            }
+            th, td {
+                padding: 5px;
+            }
+            button {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<h2>Form Pemasukan Uang</h2>
+
+<p id="totalPemasukan">Total Pemasukan: IDR 0</p>
+
+<form id="formPemasukan">
+    <label for="tanggal">Tanggal:</label>
+    <input type="date" id="tanggal" required>
+    
+    <label for="deskripsi">Deskripsi:</label>
+    <input type="text" id="deskripsi" required>
+    
+    <label for="jumlah">Jumlah:</label>
+    <input type="number" id="jumlah" required min="0" step="1000">
+    
+    <button type="submit">Simpan</button>
+</form>
+
+<table id="tabelPemasukan">
+    <thead>
+        <tr>
+            <th>Tanggal</th>
+            <th>Deskripsi</th>
+            <th>Jumlah (IDR)</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Data pemasukan akan ditambahkan di sini -->
+    </tbody>
+</table>
+
+<a id="exportButton" class="export">Ekspor ke CSV</a>
+
+<script>
+    const form = document.getElementById('formPemasukan');
+    const tabelPemasukan = document.getElementById('tabelPemasukan').getElementsByTagName('tbody')[0];
+    let totalPemasukan = 0;
+
+    form.addEventListener('submit', function(event) {
+        event.preventDefault(); // Mencegah pengiriman form
+
+        // Ambil nilai dari input
+        const tanggal = document.getElementById('tanggal').value;
+        const deskripsi = document.getElementById('deskripsi').value;
+        const jumlah = parseInt(document.getElementById('jumlah').value);
+
+        totalPemasukan += jumlah;
+
+        // Format jumlah ke dalam format IDR
+        const formattedJumlah = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(jumlah);
+
+        // Buat baris baru untuk tabel
+        const row = tabelPemasukan.insertRow();
+        const cell1 = row.insertCell(0);
+        const cell2 = row.insertCell(1);
+        const cell3 = row.insertCell(2);
+        const cell4 = row.insertCell(3);
+
+        // Masukkan data ke dalam sel
+        cell1.textContent = tanggal;
+        cell2.textContent = deskripsi;
+        cell3.textContent = formattedJumlah;
+
+        // Tambahkan tombol hapus
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Hapus';
+        deleteButton.style.backgroundColor = '#ff0000';
+        deleteButton.style.color = '#fff';
+        deleteButton.style.border = 'none';
+        deleteButton.style.padding = '5px 10px';
+        deleteButton.style.borderRadius = '5px';
+        deleteButton.addEventListener('click', function() {
+            totalPemasukan -= jumlah;
+            document.getElementById('totalPemasukan').textContent = 'Total Pemasukan: ' + new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalPemasukan);
+            row.remove();
+        });
+        cell4.appendChild(deleteButton);
+
+        // Reset form
+        form.reset();
+
+        // Update total pemasukan
+        document.getElementById('totalPemasukan').textContent = 'Total Pemasukan: ' + new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalPemasukan);
+    });
+
+    document.getElementById('exportButton').addEventListener('click', function() {
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Tanggal,Deskripsi,Jumlah (IDR)\n";
+        
+        const rows = tabelPemasukan.rows;
+        for (let i = 0; i < rows.length; i++) {
+            const cells = rows[i].cells;
+            const row = `${cells[0].textContent},${cells[1].textContent},${cells[2].textContent}\n`;
+            csvContent += row;
+        }
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', 'pemasukan.csv');
+        document.body.appendChild(link);
+
+        link.click();
+        document.body.removeChild(link);
+    });
+</script>
+
+</body> 
+</html>
